@@ -16,11 +16,6 @@ public class ClassroomController {
 
     private final ClassroomService classroomService;
 
-    @PostMapping
-    public void createClassroom(@RequestBody Classroom classroom) {
-        classroomService.createClassroom(classroom);
-    }
-
     @GetMapping("/teacher/{teacherId}")
     public Classroom getClassroomByTeacherId(@PathVariable int teacherId) {
         return classroomService.getClassroomByTeacherId(teacherId);

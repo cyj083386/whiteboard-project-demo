@@ -48,11 +48,4 @@ public class WebSocketService {
     }
 
 
-    public Map<String, String> generateClassroomCode() {
-        Random random = new Random();
-        int code = random.nextInt(900000) + 100000; // 100000에서 999999 사이의 숫자를 생성
-        Map<String, String> response = new HashMap<>();
-        response.put("classCode", String.valueOf(code));
-        return response;
-    }
 }

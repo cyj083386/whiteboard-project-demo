@@ -40,8 +40,4 @@ public class WebSocketController {
         return webSocketService.webSocketService(headerAccessor, message);
     }
 
-    @GetMapping("/api/generateClassroomCode")
-    public Map<String, String> generateClassroomCode() {
-        return webSocketService.generateClassroomCode();
-    }
 }
