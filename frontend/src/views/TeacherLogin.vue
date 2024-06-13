@@ -30,7 +30,7 @@ export default {
 
         if (response.data) {
           const classCodeResponse = await axios.get(`http://localhost:8080/api/classrooms/teacher/${response.data.id}`);
-          const classCode = classCodeResponse.data.code;
+          const classCode =classCodeResponse.data.code;
           this.$router.push({ name: 'Classroom', params: { classCode } });
         } else {
           alert('Invalid credentials');

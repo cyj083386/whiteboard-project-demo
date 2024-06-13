@@ -26,7 +26,12 @@ export default {
     joinClassroom() {
       if (this.classCode && this.studentName) {
         console.log('Joining classroom:', this.classCode, 'with name:', this.studentName);
-        if (!this.$root.$socket) {
+        if (this.$root.$socket) { //
+          this.$root.$socket.send("/app/join", {}, JSON.stringify({
+            classCode: this.classCode,
+            studentName: this.studentName,
+          }));
+        } else {
           const socket = new SockJS('http://localhost:8080/whiteboard');
           const stompClient = Stomp.over(socket);
 
@@ -39,15 +44,10 @@ export default {
               studentName: this.studentName,
             }));
           });
-        } else {
-          this.$root.$socket.send("/app/join", {}, JSON.stringify({
-            classCode: this.classCode,
-            studentName: this.studentName,
-          }));
         }
 
         // Redirect to the whiteboard page
-        this.$router.push({ name: 'Classroom', params: { classCode: this.classCode, studentName: this.studentName } });
+        this.$router.push({ name: 'Classroom', params: { classCode: this.classCode } });
       } else {
         alert('Classroom Code and Student Name are required.');
       }

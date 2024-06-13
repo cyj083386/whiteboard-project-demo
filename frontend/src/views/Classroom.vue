@@ -2,7 +2,7 @@
   <div id="classroom">
     <h2>Classroom Code: {{ classCode }}</h2>
     <button @click="toggleStudentList">학생 리스트 보기</button>
-    <Whiteboard :classCode="classCode" :studentName="studentName" />
+    <Whiteboard />
   </div>
   <div v-if="showStudentList" class="popup">
       <h3>접속 중인 학생 리스트</h3>
@@ -23,9 +23,14 @@ export default {
   components: {
     Whiteboard
   },
+  props: {
+    classCode: {
+      type: String,
+      required: true
+    }
+  },
   data() {
     return {
-      classCode: this.$route.params.classCode,
       studentName: this.$route.query.studentName,
       students: {},
       showStudentList: false
@@ -34,15 +39,27 @@ export default {
   mounted() {
     initializeWebSocket(app); // app 인스턴스를 전달합니다.
     this.$root.$bus.on('join', this.handleStudentListJoin);
-    this.$root.$bus.on('leave', this.handleStudentLeave);
-  },
-  beforeUnmount() {
-    this.$root.$bus.off('join', this.handleStudentListJoin);
-    this.$root.$bus.off('leave', this.handleStudentListLeave);
-    this.leaveClassroom();
+    this.$root.$bus.on('leave', this.handleStudentListLeave);
+    window.addEventListener('beforeunload', this.unLoadEvent);
   },
   methods: {
-    // 클래스룸 나가기
+    // 사용자 이탈시 처리 함수
+      // 사용자가 사이트 창을 닫으려고 할 때
+      // 다른 주소로 이동하려고 할 때 
+      // 같은 주소여도 새로고침하려고 할 때
+    unLoadEvent(event) {
+      if (this.canLeaveSite) return;
+ 
+      event.preventDefault();
+      event.returnValue = '';
+
+      this.leaveClassroom();
+      this.$root.$bus.off('join', this.handleStudentListJoin);
+      this.$root.$bus.off('leave', this.handleStudentListLeave);
+      window.removeEventListener('beforeunload', this.leave);
+    },
+
+    // 클래스룸 나갈때 소켓처리
     leaveClassroom() {
       const message = JSON.stringify({
         classCode: this.classCode,

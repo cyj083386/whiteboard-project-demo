@@ -19,10 +19,6 @@
 <script>
 export default {
   name: "Whiteboard",
-  props: {
-    classCode: String,
-    studentName: String
-  },
   data() {
     return {
       drawing: false,

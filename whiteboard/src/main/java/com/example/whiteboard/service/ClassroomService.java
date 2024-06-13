@@ -22,7 +22,7 @@ public class ClassroomService {
         int code = random.nextInt(900000) + 100000; // 100000에서 999999 사이의 숫자를 생성
 
         Classroom classroom = new Classroom();
-        classroom.setCode(code);
+        classroom.setCode(Integer.toString(code));
         classroom.setTeacherId(teacherId);
 
         classroomMapper.insertClassroom(classroom);
