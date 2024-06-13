@@ -154,8 +154,8 @@ export default {
 #whiteboard {
   position: relative;
   width: 100%;
-  height: 100vh;
-  background: white;
+  height: 70vh;
+  background: green;
 }
 canvas {
   display: block;
