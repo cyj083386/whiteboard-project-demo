@@ -2,6 +2,7 @@ package com.example.whiteboard.controller;
 
 import com.example.whiteboard.mapper.TeacherMapper;
 import com.example.whiteboard.model.Teacher;
+import com.example.whiteboard.service.TeacherService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -13,25 +14,15 @@ import org.springframework.web.bind.annotation.*;
 @Slf4j
 public class TeacherController {
 
-    private final TeacherMapper teacherMapper;
-    private final PasswordEncoder passwordEncoder;
+    private final TeacherService teacherService;
 
     @PostMapping("/login")
     public Teacher login(@RequestBody Teacher teacher) {
-        Teacher existingTeacher = teacherMapper.findTeacherByUsername(teacher.getUsername());
-        log.info(teacher.getPassword());
-        log.info(existingTeacher.getPassword());
-        if (existingTeacher != null && passwordEncoder.matches(teacher.getPassword(), existingTeacher.getPassword())) {
-            return existingTeacher;
-        } else {
-            throw new RuntimeException("Invalid credentials");
-        }
+        return teacherService.login(teacher);
     }
 
     @PostMapping("/register")
     public Teacher register(@RequestBody Teacher teacher) {
-        teacher.setPassword(passwordEncoder.encode(teacher.getPassword()));
-        teacherMapper.insertTeacher(teacher);
-        return teacher;
+        return teacherService.register(teacher);
     }
 }
