@@ -1,30 +1,36 @@
 <template>
-  <div>
-    <h1>Welcome</h1>
-    <router-link to="/teacher">Teacher Login</router-link>
-    <div>
-      <h2>Student Login</h2>
-      <form @submit.prevent="joinClassroom">
-        <input v-model="classCode" placeholder="Class Code" required />
-        <input v-model="name" placeholder="Your Name" required />
-        <button type="submit">Join</button>
-      </form>
-    </div>
+  <div id="home">
+    <h1>Welcome to the Classroom</h1>
+    <button @click="goToTeacherLogin">선생님 입장</button>
+    <button @click="goToStudentLogin">학생 입장</button>
   </div>
 </template>
 
 <script>
 export default {
-  data() {
-    return {
-      classCode: '',
-      name: ''
-    };
-  },
+  name: 'Home',
   methods: {
-    joinClassroom() {
-      this.$router.push({ name: 'Classroom', params: { classCode: this.classCode }, query: { name: this.name } });
+    goToTeacherLogin() {
+      this.$router.push({ name: 'TeacherLogin' });
+    },
+    goToStudentLogin() {
+      this.$router.push({ name: 'Student' });
     }
   }
-};
+}
 </script>
+
+<style scoped>
+#home {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 50px;
+}
+button {
+  margin: 10px;
+  padding: 10px 20px;
+  font-size: 16px;
+  cursor: pointer;
+}
+</style>

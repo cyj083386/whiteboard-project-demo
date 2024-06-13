@@ -1,6 +1,8 @@
 <template>
   <div id="whiteboard">
     <canvas ref="canvas"
+            width="800"
+            height="800"
             @mousedown="startDrawing"
             @mousemove="draw"
             @mouseup="stopDrawing"
@@ -8,6 +10,8 @@
     </canvas>
     <div id="designTool">
       <button @click="buttonErase">모두 지우기</button>
+      <button @click="increaseThickness">두껍게</button>
+      <button @click="decreaseThickness">얇게</button>
     </div>
   </div>
 </template>
@@ -15,6 +19,10 @@
 <script>
 export default {
   name: "Whiteboard",
+  props: {
+    classCode: String,
+    studentName: String
+  },
   data() {
     return {
       drawing: false,
@@ -23,6 +31,8 @@ export default {
       lastY: 0,
       scaleFactorX: 1,
       scaleFactorY: 1,
+      showStudentList: false,
+      students: {},
     };
   },
   mounted() {
@@ -96,7 +106,7 @@ export default {
         prevX,
         prevY,
       });
-      if (this.$root.$socket) {
+      if (this.$root.$socket && this.$root.$socket.connected) {
         this.$root.$socket.send("/app/update", {}, message);
       }
     },
@@ -107,6 +117,18 @@ export default {
     // 지우개 버튼
     buttonErase() {
       this.context.clearRect(0, 0, this.$refs.canvas.width, this.$refs.canvas.height);
+    },
+    // 두껍게 버튼
+    increaseThickness() {
+      this.context.lineWidth += 1;
+      console.log("지금 두께 : ", this.context.lineWidth);
+    },
+    // 얇게 버튼
+    decreaseThickness() {
+      if (this.context.lineWidth > 1) {
+        this.context.lineWidth -= 1;
+        console.log("지금 두께 : ", this.context.lineWidth);
+      }
     },
     // 메시지 수신 처리 함수
     handleIncomingDrawing(message) {
@@ -122,7 +144,8 @@ export default {
       // 좌표 업데이트
       this.lastX = x;
       this.lastY = y;
-    }
+    },
+   
   }
 };
 </script>
@@ -144,4 +167,5 @@ canvas {
   top: 10px;
   left: 10px;
 }
+
 </style>
