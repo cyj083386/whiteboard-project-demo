@@ -1,9 +1,9 @@
 <template>
-  <div id="student">
+  <div id="student-login">
     <form @submit.prevent="joinClassroom">
-      <label for="classCode">Class Code:</label>
+      <label for="classCode">classCode:</label>
       <input v-model="classCode" type="text" id="classCode" required />
-      <label for="studentName">Student Name:</label>
+      <label for="studentName">Name:</label>
       <input v-model="studentName" type="text" id="studentName" required />
       <button type="submit">Join Classroom</button>
     </form>
@@ -11,53 +11,43 @@
 </template>
 
 <script>
-import SockJS from 'sockjs-client';
-import Stomp from 'stompjs';
+import { initializeWebSocket } from '../plugins/WebSocketClient';
+import app from '../main'; // app 인스턴스를 가져옵니다.
 
 export default {
-  name: "Student",
   data() {
     return {
-      classCode: "",
-      studentName: "",
+      classCode: '',
+      studentName: '',
     };
   },
   methods: {
     joinClassroom() {
       if (this.classCode && this.studentName) {
         console.log('Joining classroom:', this.classCode, 'with name:', this.studentName);
-        if (this.$root.$socket) { //
-          this.$root.$socket.send("/app/join", {}, JSON.stringify({
+        initializeWebSocket(app, this.classCode); // 고유한 소켓 엔드포인트로 연결
+
+        // WebSocket 연결이 완료된 후에 메시지를 보냅니다.
+        setTimeout(() => {
+          app.config.globalProperties.$socket.publish({destination: `/pub/join/${this.classCode}`, body: JSON.stringify({
             classCode: this.classCode,
-            studentName: this.studentName,
-          }));
-        } else {
-          const socket = new SockJS('http://localhost:8080/whiteboard');
-          const stompClient = Stomp.over(socket);
+            sender: this.studentName,
+            type: 'JOIN'
+          })});
+        }, 1000);
 
-          stompClient.connect({}, (frame) => {
-            console.log('Connected: ' + frame);
-            this.$root.$socket = stompClient;
-
-            this.$root.$socket.send("/app/join", {}, JSON.stringify({
-              classCode: this.classCode,
-              studentName: this.studentName,
-            }));
-          });
-        }
-
-        // Redirect to the whiteboard page
-        this.$router.push({ name: 'Classroom', params: { classCode: this.classCode } });
+        // Redirect to the classroom page
+        this.$router.push({ name: 'Classroom', params: { classCode: this.classCode }, query: { studentName: this.studentName } });
       } else {
-        alert('Classroom Code and Student Name are required.');
+        alert('Classroom ID and Name are required.');
       }
     }
-  },
+  }
 };
 </script>
 
 <style scoped>
-#student {
+#student-login {
   display: flex;
   flex-direction: column;
   width: 300px;

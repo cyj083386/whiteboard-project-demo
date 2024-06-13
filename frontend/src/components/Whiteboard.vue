@@ -1,12 +1,14 @@
 <template>
   <div id="whiteboard">
-    <canvas ref="canvas"
-            width="800"
-            height="800"
-            @mousedown="startDrawing"
-            @mousemove="draw"
-            @mouseup="stopDrawing"
-            @mouseout="stopDrawing">
+    <canvas
+      ref="canvas"
+      width="800"
+      height="800"
+      @mousedown="startDrawing"
+      @mousemove="draw"
+      @mouseup="stopDrawing"
+      @mouseout="stopDrawing"
+    >
     </canvas>
     <div id="designTool">
       <button @click="buttonErase">모두 지우기</button>
@@ -17,8 +19,21 @@
 </template>
 
 <script>
+import { initializeWebSocket } from "../plugins/WebSocketClient";
+import app from "../main"; // app 인스턴스를 가져옵니다.
+
 export default {
   name: "Whiteboard",
+  props: {
+    classCode: {
+      type: String,
+      required: true,
+    },
+    studentName: {
+      type: String,
+      required: true,
+    },
+  },
   data() {
     return {
       drawing: false,
@@ -32,13 +47,15 @@ export default {
     };
   },
   mounted() {
+    initializeWebSocket(app, this.classCode); // app 인스턴스를 전달합니다.
+
     this.initCanvas();
-    this.$root.$bus.on('whiteboard-event', this.handleIncomingDrawing);
-    window.addEventListener('resize', this.resizeCanvas);
+    this.$root.$bus.on("event", this.handleIncomingDrawing);
+    window.addEventListener("resize", this.resizeCanvas);
   },
   beforeUnmount() {
-    this.$root.$bus.off('whiteboard-event', this.handleIncomingDrawing);
-    window.removeEventListener('resize', this.resizeCanvas);
+    this.$root.$bus.off("event", this.handleIncomingDrawing);
+    window.removeEventListener("resize", this.resizeCanvas);
   },
   methods: {
     // 캔버스 세팅
@@ -97,13 +114,21 @@ export default {
 
       // 메시지 전송
       const message = JSON.stringify({
-        x: this.lastX,
-        y: this.lastY,
-        prevX,
-        prevY,
+        type: "DRAW",
+        sender: this.studentName,
+        classCode: this.classCode,
+        data: {
+          x: this.lastX,
+          y: this.lastY,
+          prevX,
+          prevY,
+        },
       });
       if (this.$root.$socket && this.$root.$socket.connected) {
-        this.$root.$socket.send("/app/update", {}, message);
+        this.$root.$socket.publish({
+          destination: `/pub/update/${this.classCode}`,
+          body: message,
+        });
       }
     },
     // 그리기 스탑
@@ -128,21 +153,25 @@ export default {
     },
     // 메시지 수신 처리 함수
     handleIncomingDrawing(message) {
-      const { x, y, prevX, prevY } = JSON.parse(message.body);
-      console.log(`Handling incoming drawing from (${prevX}, ${prevY}) to (${x}, ${y})`);
+      const { type, data } = message;
+      if (type === "DRAW") {
+        const { x, y, prevX, prevY } = data;
+        console.log(
+          `Handling incoming drawing from (${prevX}, ${prevY}) to (${x}, ${y})`
+        );
 
-      // 그리기
-      this.context.beginPath();
-      this.context.moveTo(prevX, prevY);
-      this.context.lineTo(x, y);
-      this.context.stroke();
+        // 그리기
+        this.context.beginPath();
+        this.context.moveTo(prevX, prevY);
+        this.context.lineTo(x, y);
+        this.context.stroke();
 
-      // 좌표 업데이트
-      this.lastX = x;
-      this.lastY = y;
+        // 좌표 업데이트
+        this.lastX = x;
+        this.lastY = y;
+      }
     },
-   
-  }
+  },
 };
 </script>
 
@@ -163,5 +192,4 @@ canvas {
   top: 10px;
   left: 10px;
 }
-
 </style>
