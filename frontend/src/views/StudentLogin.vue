@@ -11,7 +11,6 @@
 </template>
 
 <script>
-import { initializeWebSocket } from "../plugins/WebSocketClient";
 import app from "../main"; // app 인스턴스를 가져옵니다.
 
 export default {
@@ -25,8 +24,6 @@ export default {
     joinClassroom() {
       if (this.classCode && this.studentName) {
         console.log("Joining classroom:", this.classCode, "with name:", this.studentName);
-        initializeWebSocket(app, this.classCode); // 고유한 소켓 엔드포인트로 연결
-
         // WebSocket 연결이 완료된 후에 메시지를 보냅니다.
         setTimeout(() => {
           app.config.globalProperties.$socket.publish({

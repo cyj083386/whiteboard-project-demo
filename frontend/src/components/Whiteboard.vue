@@ -19,9 +19,6 @@
 </template>
 
 <script>
-import { initializeWebSocket } from "../plugins/WebSocketClient";
-import app from "../main"; // app 인스턴스를 가져옵니다.
-
 export default {
   name: "Whiteboard",
   props: {
@@ -45,8 +42,6 @@ export default {
     };
   },
   mounted() {
-    initializeWebSocket(app, this.classCode); // app 인스턴스를 전달합니다.
-
     this.initCanvas();
     this.$root.$bus.on("event", this.handleIncomingDrawing);
     window.addEventListener("resize", this.resizeCanvas);
