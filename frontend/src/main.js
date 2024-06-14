@@ -5,7 +5,7 @@ import mitt from 'mitt';
 
 const app = createApp(App);
 
-// 이벤트 버스 설정
+// 이벤트 버스 설정(글로벌한)
 app.config.globalProperties.$bus = mitt();
 
 app.use(router);

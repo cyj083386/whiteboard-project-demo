@@ -2,7 +2,7 @@
   <div id="classroom">
     <h2>Classroom Code: {{ classCode }}</h2>
     <button @click="toggleStudentList">학생 리스트 보기</button>
-    <Whiteboard :classCode="classCode" :studentName="studentName" />
+    <Whiteboard :classCode="classCode" :sender="sender" />
   </div>
   <div v-if="showStudentList" class="popup">
     <h3>접속 중인 학생 리스트</h3>
@@ -17,6 +17,7 @@
 import Whiteboard from "../components/Whiteboard.vue";
 import { initializeWebSocket } from "../plugins/WebSocketClient";
 import app from "../main"; // app 인스턴스를 가져옵니다.
+import { reactive } from "vue";
 
 export default {
   name: "Classroom",
@@ -29,10 +30,13 @@ export default {
       required: true,
     },
   },
+  setup() {
+    const students = reactive({});
+    return { students };
+  },
   data() {
     return {
-      studentName: this.$route.query.studentName,
-      students: {},
+      sender: this.$route.query.currentUser,
       showStudentList: false,
     };
   },
@@ -62,8 +66,7 @@ export default {
     // 클래스룸 나갈때 소켓처리
     leaveClassroom() {
       const message = JSON.stringify({
-        classCode: this.classCode,
-        sender: this.studentName,
+        sender: this.sender,
         type: "LEAVE",
       });
       if (this.$root.$socket && this.$root.$socket.connected) {
@@ -75,16 +78,22 @@ export default {
     },
     // 학생 참여시 리스트 처리 함수
     handleStudentListJoin(message) {
-      const { sender, classCode } = message;
-      if (this.classCode === classCode && sender !== "teacher") {
-        this.$set(this.students, sender);
+      try {
+        console.log("handleStudentListJoin", message);
+        const { sender, sessionId } = message;
+        this.students[sessionId] = sender;
+      } catch (error) {
+        console.error(error);
       }
     },
     // 학생 나가기시 리스트 처리 함수
     handleStudentListLeave(message) {
-      const { sender, classCode } = message;
-      if (this.classCode === classCode) {
-        this.$delete(this.students, sender);
+      try {
+        console.log("handleStudentListLeave", message);
+        const { sessionId } = message;
+        delete this.students[sessionId];
+      } catch (error) {
+        console.error(error);
       }
     },
     // 학생 리스트 팝업 토글

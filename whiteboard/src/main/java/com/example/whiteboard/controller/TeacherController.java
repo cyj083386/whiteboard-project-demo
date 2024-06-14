@@ -17,7 +17,7 @@ public class TeacherController {
     private final TeacherService teacherService;
 
     @PostMapping("/login")
-    public Teacher login(@RequestBody Teacher teacher) {
+    public String login(@RequestBody Teacher teacher) {
         return teacherService.login(teacher);
     }
 

@@ -29,7 +29,7 @@ export default {
       type: String,
       required: true,
     },
-    studentName: {
+    sender: {
       type: String,
       required: true,
     },
@@ -42,8 +42,6 @@ export default {
       lastY: 0,
       scaleFactorX: 1,
       scaleFactorY: 1,
-      showStudentList: false,
-      students: {},
     };
   },
   mounted() {
@@ -115,8 +113,7 @@ export default {
       // 메시지 전송
       const message = JSON.stringify({
         type: "DRAW",
-        sender: this.studentName,
-        classCode: this.classCode,
+        sender: this.sender,
         data: {
           x: this.lastX,
           y: this.lastY,

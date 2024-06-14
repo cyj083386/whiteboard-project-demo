@@ -11,36 +11,41 @@
 </template>
 
 <script>
-import axios from 'axios';
+import axios from "axios";
 
 export default {
   data() {
     return {
-      username: '',
-      password: ''
+      username: "",
+      password: "",
     };
   },
   methods: {
     async login() {
       try {
-        const response = await axios.post('http://localhost:8080/api/teacher/login', {
+        const response = await axios.post("http://localhost:8080/api/teacher/login", {
           username: this.username,
-          password: this.password
+          password: this.password,
         });
 
         if (response.data) {
-          const classCodeResponse = await axios.get(`http://localhost:8080/api/classrooms/teacher/${response.data.id}`);
-          const classCode =classCodeResponse.data.code;
-          this.$router.push({ name: 'Classroom', params: { classCode } });
+          const classCodeResponse = await axios.get(
+            `http://localhost:8080/api/classrooms/teacher/${response.data}`
+          );
+          const classCode = classCodeResponse.data.code;
+          this.$router.push({
+            name: "Classroom",
+            params: { classCode },
+            query: { currentUser: this.username },
+          });
         } else {
-          alert('Invalid credentials');
+          alert("Invalid credentials");
         }
       } catch (error) {
-        alert('Login failed', error);
+        alert("Login failed", error);
       }
     },
-
-  }
+  },
 };
 </script>
 
@@ -61,7 +66,7 @@ input {
 }
 button {
   padding: 10px;
-  background-color: #007BFF;
+  background-color: #007bff;
   color: white;
   border: none;
   cursor: pointer;

@@ -11,38 +11,44 @@
 </template>
 
 <script>
-import { initializeWebSocket } from '../plugins/WebSocketClient';
-import app from '../main'; // app 인스턴스를 가져옵니다.
+import { initializeWebSocket } from "../plugins/WebSocketClient";
+import app from "../main"; // app 인스턴스를 가져옵니다.
 
 export default {
   data() {
     return {
-      classCode: '',
-      studentName: '',
+      classCode: "",
+      studentName: "",
     };
   },
   methods: {
     joinClassroom() {
       if (this.classCode && this.studentName) {
-        console.log('Joining classroom:', this.classCode, 'with name:', this.studentName);
+        console.log("Joining classroom:", this.classCode, "with name:", this.studentName);
         initializeWebSocket(app, this.classCode); // 고유한 소켓 엔드포인트로 연결
 
         // WebSocket 연결이 완료된 후에 메시지를 보냅니다.
         setTimeout(() => {
-          app.config.globalProperties.$socket.publish({destination: `/pub/join/${this.classCode}`, body: JSON.stringify({
-            classCode: this.classCode,
-            sender: this.studentName,
-            type: 'JOIN'
-          })});
+          app.config.globalProperties.$socket.publish({
+            destination: `/pub/join/${this.classCode}`,
+            body: JSON.stringify({
+              type: "JOIN",
+              sender: this.studentName,
+            }),
+          });
         }, 1000);
 
         // Redirect to the classroom page
-        this.$router.push({ name: 'Classroom', params: { classCode: this.classCode }, query: { studentName: this.studentName } });
+        this.$router.push({
+          name: "Classroom",
+          params: { classCode: this.classCode },
+          query: { currentUser: this.studentName },
+        });
       } else {
-        alert('Classroom ID and Name are required.');
+        alert("Classroom ID and Name are required.");
       }
-    }
-  }
+    },
+  },
 };
 </script>
 
@@ -63,7 +69,7 @@ input {
 }
 button {
   padding: 10px;
-  background-color: #007BFF;
+  background-color: #007bff;
   color: white;
   border: none;
   cursor: pointer;

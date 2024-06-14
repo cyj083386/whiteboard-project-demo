@@ -15,12 +15,12 @@ public class TeacherService {
     private final TeacherMapper teacherMapper;
     private final PasswordEncoder passwordEncoder;
 
-    public Teacher login(Teacher teacher) {
+    public String login(Teacher teacher) {
         Teacher existingTeacher = teacherMapper.findTeacherByUsername(teacher.getUsername());
         log.info(teacher.getPassword());
         log.info(existingTeacher.getPassword());
         if (existingTeacher != null && passwordEncoder.matches(teacher.getPassword(), existingTeacher.getPassword())) {
-            return existingTeacher;
+            return Integer.toString(existingTeacher.getId());
         } else {
             throw new RuntimeException("Invalid credentials");
         }

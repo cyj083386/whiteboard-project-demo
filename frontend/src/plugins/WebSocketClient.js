@@ -23,7 +23,6 @@ export function initializeWebSocket(app, classCode) {
         console.log('Received message: ', message.body);
         app.config.globalProperties.$bus.emit('event', JSON.parse(message.body));
       });
-
       stompClient.subscribe(`/sub/class/${classCode}/join`, (message) => {
         console.log('Received join message: ', message.body);
         app.config.globalProperties.$bus.emit('join', JSON.parse(message.body));
