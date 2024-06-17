@@ -15,8 +15,7 @@
 
 <script>
 import Whiteboard from "../components/Whiteboard.vue";
-import { initializeWebSocket } from "../plugins/WebSocketClient";
-import app from "../main"; // app 인스턴스를 가져옵니다.
+import { mapState } from "vuex";
 import { reactive } from "vue";
 
 export default {
@@ -38,19 +37,25 @@ export default {
     return {
       sender: this.$route.query.currentUser,
       showStudentList: false,
+      canLeaveSite: false,
     };
   },
+  computed: {
+    ...mapState(["socket"]),
+  },
   mounted() {
-    initializeWebSocket(app, this.classCode); // app 인스턴스를 전달합니다.
-    this.$root.$bus.on("join", this.handleStudentListJoin);
-    this.$root.$bus.on("leave", this.handleStudentListLeave);
+    this.$store.dispatch("subscribeToClass", this.classCode);
+
+    this.$store.subscribe((mutation, state) => {
+      if (mutation.type === "addJoin") {
+        this.handleStudentListJoin(mutation.payload);
+      } else if (mutation.type === "addLeave") {
+        this.handleStudentListLeave(mutation.payload);
+      }
+    });
     window.addEventListener("beforeunload", this.unLoadEvent);
   },
   methods: {
-    // 사용자 이탈시 처리 함수
-    // 사용자가 사이트 창을 닫으려고 할 때
-    // 다른 주소로 이동하려고 할 때
-    // 같은 주소여도 새로고침하려고 할 때
     unLoadEvent(event) {
       if (this.canLeaveSite) return;
 
@@ -58,25 +63,19 @@ export default {
       event.returnValue = "";
 
       this.leaveClassroom();
-      this.$root.$bus.off("join", this.handleStudentListJoin);
-      this.$root.$bus.off("leave", this.handleStudentListLeave);
-      window.removeEventListener("beforeunload", this.leave);
     },
-
-    // 클래스룸 나갈때 소켓처리
     leaveClassroom() {
       const message = JSON.stringify({
         sender: this.sender,
         type: "LEAVE",
       });
-      if (this.$root.$socket && this.$root.$socket.connected) {
-        this.$root.$socket.publish({
+      if (this.socket && this.socket.connected) {
+        this.socket.publish({
           destination: `/pub/leave/${this.classCode}`,
           body: message,
         });
       }
     },
-    // 학생 참여시 리스트 처리 함수
     handleStudentListJoin(message) {
       try {
         console.log("handleStudentListJoin", message);
@@ -86,7 +85,6 @@ export default {
         console.error(error);
       }
     },
-    // 학생 나가기시 리스트 처리 함수
     handleStudentListLeave(message) {
       try {
         console.log("handleStudentListLeave", message);
@@ -96,7 +94,6 @@ export default {
         console.error(error);
       }
     },
-    // 학생 리스트 팝업 토글
     toggleStudentList() {
       this.showStudentList = !this.showStudentList;
     },

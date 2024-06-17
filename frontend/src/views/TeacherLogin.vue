@@ -12,38 +12,52 @@
 
 <script>
 import axios from "axios";
+import { mapState } from "vuex";
 
 export default {
   data() {
     return {
       username: "",
       password: "",
+      error: null,
     };
   },
+  computed: {
+    ...mapState(["socket"]),
+  },
   methods: {
-    async login() {
-      try {
-        const response = await axios.post("http://localhost:8080/api/teacher/login", {
+    login() {
+      axios
+        .post("http://localhost:8080/api/teacher/login", {
           username: this.username,
           password: this.password,
-        });
-
-        if (response.data) {
-          const classCodeResponse = await axios.get(
-            `http://localhost:8080/api/classrooms/teacher/${response.data}`
-          );
+        })
+        .then((response) => {
+          if (response.data) {
+            return axios.get(
+              `http://localhost:8080/api/classrooms/teacher/${response.data}`
+            );
+          } else {
+            throw new Error("Invalid credentials");
+          }
+        })
+        .then((classCodeResponse) => {
           const classCode = classCodeResponse.data.code;
-          this.$router.push({
-            name: "Classroom",
-            params: { classCode },
-            query: { currentUser: this.username },
+          // WebSocket 연결 초기화
+          const connect = this.$store.dispatch("initializeWebSocket", this.classCode);
+          connect.then(() => {
+            // Redirect to the classroom page
+            this.$router.push({
+              name: "Classroom",
+              params: { classCode },
+              query: { currentUser: this.username },
+            });
           });
-        } else {
-          alert("Invalid credentials");
-        }
-      } catch (error) {
-        alert("Login failed", error);
-      }
+        })
+        .catch((error) => {
+          console.error("Login failed: ", error.message);
+          alert("Login failed: " + error.message);
+        });
     },
   },
 };

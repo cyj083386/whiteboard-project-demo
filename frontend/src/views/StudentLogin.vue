@@ -1,7 +1,7 @@
 <template>
   <div id="student-login">
     <form @submit.prevent="joinClassroom">
-      <label for="classCode">classCode:</label>
+      <label for="classCode">Class Code:</label>
       <input v-model="classCode" type="text" id="classCode" required />
       <label for="studentName">Name:</label>
       <input v-model="studentName" type="text" id="studentName" required />
@@ -11,7 +11,7 @@
 </template>
 
 <script>
-import app from "../main"; // app 인스턴스를 가져옵니다.
+import { mapState } from "vuex";
 
 export default {
   data() {
@@ -20,27 +20,37 @@ export default {
       studentName: "",
     };
   },
+  computed: {
+    ...mapState(["socket"]),
+  },
   methods: {
-    joinClassroom() {
+    async joinClassroom() {
       if (this.classCode && this.studentName) {
         console.log("Joining classroom:", this.classCode, "with name:", this.studentName);
-        // WebSocket 연결이 완료된 후에 메시지를 보냅니다.
-        setTimeout(() => {
-          app.config.globalProperties.$socket.publish({
-            destination: `/pub/join/${this.classCode}`,
-            body: JSON.stringify({
-              type: "JOIN",
-              sender: this.studentName,
-            }),
-          });
-        }, 1000);
 
-        // Redirect to the classroom page
-        this.$router.push({
-          name: "Classroom",
-          params: { classCode: this.classCode },
-          query: { currentUser: this.studentName },
-        });
+        try {
+          // WebSocket 연결 초기화
+          const connect = this.$store.dispatch("initializeWebSocket", this.classCode);
+
+          connect.then(() => {
+            this.socket.publish({
+              destination: `/pub/join/${this.classCode}`,
+              body: JSON.stringify({
+                type: "JOIN",
+                sender: this.studentName,
+              }),
+            });
+            // Classroom 페이지로 이동
+            this.$router.push({
+              name: "Classroom",
+              params: { classCode: this.classCode },
+              query: { currentUser: this.studentName },
+            });
+          });
+        } catch (error) {
+          console.error("Failed to initialize WebSocket connection:", error);
+          alert("Failed to initialize WebSocket connection. Please try again.");
+        }
       } else {
         alert("Classroom ID and Name are required.");
       }
