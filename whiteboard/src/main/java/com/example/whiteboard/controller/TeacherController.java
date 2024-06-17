@@ -21,6 +21,7 @@ public class TeacherController {
         return teacherService.login(teacher);
     }
 
+    //회원가입.. 넣어야하나..?
     @PostMapping("/register")
     public Teacher register(@RequestBody Teacher teacher) {
         return teacherService.register(teacher);
